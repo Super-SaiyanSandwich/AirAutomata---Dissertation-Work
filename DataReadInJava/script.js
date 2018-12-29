@@ -67,7 +67,6 @@ dojoConfig = {
     async: 1,
     packages: [
         'dijit',
-        'dijit-themes',
         'dojo',
         'dojox',
         'util'
