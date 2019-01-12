@@ -1,4 +1,4 @@
-# AirAutomata---Dissertation-Work
+# AirAutomata - Dissertation-Work
 
 For the Indivual Literature Review and Project (ECM3401) module.
 
