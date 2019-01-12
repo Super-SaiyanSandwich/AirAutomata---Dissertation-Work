@@ -16,7 +16,6 @@ import urllib3
 #
 #
 
-
 ## INFORMATION ON ABERDEEN DATA, USED FOR TESTING
 defraATOMUrlABD = "http://uk-air.defra.gov.uk/data/atom-dls/auto/2018/GB_FixedObservations_2018_ABD.atom.en.xml"
 defraATOMUrlABD2 = "http://uk-air.defra.gov.uk/data/atom-dls/observations/auto/GB_FixedObservations_2018_ABD.xml"
@@ -32,6 +31,9 @@ pollutantCodes = {
 
 ## WITHIN THE DATASETS, IF A DATA SAMPLE HAS THIS CODE FOR ONE OF IT'S ATTRIBUTES THEN IT IS USELESS
 missingFOI = "http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_missingFOI"
+
+auto = "auto"
+nonAuto = "non-auto"
 
 ##
 ##  ATOM feed codes
@@ -54,8 +56,17 @@ resultValues = "{http://www.opengis.net/swe/2.0}values"
 #
 #
 
+def getData(year):
+    data = {}
+    HttpCon = getHttpCon()
+    
+    data.update(getLocations(getDataUrl(year, auto), auto, HttpCon, pollutantCodes))
+    data.update(getLocations(getDataUrl(year, nonAuto), non-auto,  HttpCon, pollutantCodes))
+    
+    return data
 
-def getLocations(URL, httpCon, pollutantCodes):
+
+def getLocations(URL, mode, httpCon, pollutantCodes):
     data = {}
 
     req = httpCon.request("GET",URL)
@@ -73,13 +84,13 @@ def getLocations(URL, httpCon, pollutantCodes):
             if polltant.attrib["href"] in pollutantCodes:
                 locationCode = list(location)[0].text
                 print("LOADING: ",locationCode)
-                data[locationCode] = getLocationData(httpCon, locationCode, pollutantCodes)
+                data[locationCode] = getLocationData(httpCon, locationCode, mode, pollutantCodes)
                 break
     
     return data
 
 
-def getLocationData(httpCon, locationCode, pollutantCodes):
+def getLocationData(httpCon, locationCode, mode, pollutantCodes):
     """
     Downloads all of the data for a certain location.
 
@@ -93,6 +104,8 @@ def getLocationData(httpCon, locationCode, pollutantCodes):
         Used to access the URL and download the related file
     locationCode : str
         Location and year saught for data file
+    mode : str
+        Defines whether it is automatic or non-automatic data stream from DEFRA
     pollutantCodes : dict
         Urls and related names of saught pollutants
         
@@ -105,7 +118,7 @@ def getLocationData(httpCon, locationCode, pollutantCodes):
     
     locationData = {}
 
-    req = httpCon.request("GET", getLocationDataURL(locationCode))
+    req = httpCon.request("GET", getLocationDataURL(locationCode, mode))
 
     reqList = str(req.data).split('\\n')
     reqList[0] = reqList[0][2:]
@@ -138,13 +151,13 @@ def getLocationData(httpCon, locationCode, pollutantCodes):
     return locationData
         
             
-## Generates the main Url for the year of data being downloaded
-def getDataUrl(year):
-    return "https://uk-air.defra.gov.uk/data/atom-dls/auto/"+ str(year) +"/atom.en.xml"
+## Generates the main Url for the year and mode of data being downloaded
+def getDataUrl(year, mode):
+    return "https://uk-air.defra.gov.uk/data/atom-dls/" + mode + "/" + str(year) +"/atom.en.xml"
 
-## Generates the location Url for the year of data being downloaded
-def getLocationDataURL(locationID):
-    return "https://uk-air.defra.gov.uk/data/atom-dls/observations/auto/" + locationID + ".xml"
+## Generates the location Url for the year and mode of data being downloaded
+def getLocationDataURL(locationID, mode):
+    return "https://uk-air.defra.gov.uk/data/atom-dls/observations/" + mode + "/" + locationID + ".xml"
 
 ## Creates a Http connection object
 def getHttpCon():
@@ -158,6 +171,6 @@ def getHttpCon():
 
 if __name__ == '__main__':
     print("::TEST::\n")    
-    data = getLocations(getDataUrl(2019), getHttpCon(), pollutantCodes)
+    data = getData(2019)
     print("::TESTS END::")
 
