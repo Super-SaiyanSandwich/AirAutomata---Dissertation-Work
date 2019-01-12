@@ -12,6 +12,10 @@ The project is broken up into several sections:
 
 This section is design to download a parse the data fed to the DEFRA ATOM feeds, downloading all of the data for the pollutants needed to evaluate Air Quality.
 
+Within the repository, there are two versions of this. Originally I planned to use JavaScript to download and parse the data using all of the libraries for such thing that exist, however in my implementation I came across many issues which I ultimately didn't have the confidence to overcome. The final issue was a lack of a HTTPS object within the nashorn version of JavaScript.
+
+Due to these issues I switched to using Python, something I found unequivocally easier to implement and is the system I will be using for the foreseeable future when downloading the data.
+
 ### Visualisation
 
 This section, further broken down again, focuses on the aspect of the project related to visualising all the data either downloaded or produce by the system designed. This is an important area to experiment with as representing the data can be difficult to get right on the first try, there may always be a more appropriate method to do so.
