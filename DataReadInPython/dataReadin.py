@@ -34,6 +34,7 @@ missingFOI = "http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_m
 
 auto = "auto"
 nonAuto = "non-auto"
+aggregated = "aggregated"
 
 ##
 ##  ATOM feed codes
@@ -61,7 +62,7 @@ def getData(year):
     HttpCon = getHttpCon()
     
     data.update(getLocations(getDataUrl(year, auto), auto, HttpCon, pollutantCodes))
-    data.update(getLocations(getDataUrl(year, nonAuto), non-auto,  HttpCon, pollutantCodes))
+    data.update(getLocations(getDataUrl(year, nonAuto), nonAuto,  HttpCon, pollutantCodes))
     
     return data
 
@@ -83,10 +84,14 @@ def getLocations(URL, mode, httpCon, pollutantCodes):
             ##print(polltant.attrib["href"])
             if polltant.attrib["href"] in pollutantCodes:
                 locationCode = list(location)[0].text
-                print("LOADING: ",locationCode)
-                data[locationCode] = getLocationData(httpCon, locationCode, mode, pollutantCodes)
+                print("LOADING " + mode.upper() + "MATIC DATA STREAM::" ,locationCode)
+                locationData = getLocationData(httpCon, locationCode, mode, pollutantCodes)
+                if locationData != {}:
+                    data[locationCode] = locationData
                 break
     
+    httpCon.clear()
+
     return data
 
 
@@ -140,13 +145,12 @@ def getLocationData(httpCon, locationCode, mode, pollutantCodes):
                 for indxi, ite in enumerate(data):
                     data[indxi] = ite.split(",")   
                 
-                try:
-                    locationData[pollutantCodes[pollutant]].append(data)   
-                except:
-                    locationData[pollutantCodes[pollutant]] = data
+                locationData.update({pollutantCodes[pollutant] : data})
                     
         except KeyError:
             continue
+
+    httpCon.clear()
 
     return locationData
         
@@ -161,16 +165,21 @@ def getLocationDataURL(locationID, mode):
 
 ## Creates a Http connection object
 def getHttpCon():
-    return httpCon = urllib3.PoolManager(cert_reqs="CERT_REQUIRED",ca_certs=certifi.where())
+    return urllib3.PoolManager(cert_reqs="CERT_REQUIRED",ca_certs=certifi.where())
 
 #
-#
+#0
 #     TESTING FUNCTIONS
 #
 #
 
 if __name__ == '__main__':
-    print("::TEST::\n")    
-    data = getData(2019)
+    print("::TEST::\n")
+
+    for i in range(1973,2019):
+        data = getData(i)         
+        f= open("Data/"+str(i)+"Data.txt","w+")
+        f.write(str(data))
+        f.close()
     print("::TESTS END::")
 
