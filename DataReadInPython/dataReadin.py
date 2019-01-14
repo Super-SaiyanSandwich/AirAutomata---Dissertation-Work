@@ -84,10 +84,12 @@ def getLocations(URL, mode, httpCon, pollutantCodes):
             ##print(polltant.attrib["href"])
             if polltant.attrib["href"] in pollutantCodes:
                 locationCode = list(location)[0].text
+                if "Agg" in locationCode: break
                 print("LOADING " + mode.upper() + "MATIC DATA STREAM::" ,locationCode)
                 locationData = getLocationData(httpCon, locationCode, mode, pollutantCodes)
                 if locationData != {}:
                     data[locationCode] = locationData
+                    data[locationCode].update({"Location" : location[-1].text.split(" ")[0:2]})
                 break
     
     httpCon.clear()
