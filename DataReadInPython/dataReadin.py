@@ -58,6 +58,21 @@ resultValues = "{http://www.opengis.net/swe/2.0}values"
 #
 
 def getData(year):
+    """
+    Gets all of the data, for a specific year across all locations that existed in that year.
+    Filters out unneccesary information
+
+    Parameters
+    ----------
+    year : int
+        The year of data being downloaded
+
+    Returns
+    -------
+    data
+        dictionary of all the data
+    """
+
     data = {}
     HttpCon = getHttpCon()
     
@@ -68,6 +83,28 @@ def getData(year):
 
 
 def getLocations(URL, mode, httpCon, pollutantCodes):
+    """
+    Finds all of the different location codes for sensors reading in information.
+    Once found, all of the data for that location is download and filtered for only
+    the pollutants needed in this project.
+
+    Parameters
+    ----------
+    URL : string
+        Either the automatic or non-automatic string URL for a year
+    mode : string
+        Either automatic or non-automatic
+    httpCon : urllib3.PoolManager
+        Used to access the URL and download the related file
+    pollutantCodes : dict
+        Urls and related names of saught pollutants
+    
+    Returns
+    -------
+    data
+        dictionary of all the data
+    """
+
     data = {}
 
     req = httpCon.request("GET",URL)
@@ -170,7 +207,7 @@ def getHttpCon():
     return urllib3.PoolManager(cert_reqs="CERT_REQUIRED",ca_certs=certifi.where())
 
 #
-#0
+#
 #     TESTING FUNCTIONS
 #
 #
@@ -178,7 +215,7 @@ def getHttpCon():
 if __name__ == '__main__':
     print("::TEST::\n")
 
-    for i in range(1973,2019):
+    for i in range(2019,2020):
         data = getData(i)         
         f= open("Data/"+str(i)+"Data.txt","w+")
         f.write(str(data))

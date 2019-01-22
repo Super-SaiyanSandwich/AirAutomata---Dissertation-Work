@@ -7,7 +7,7 @@
 
         {
             "type": "python",
-            "name": "Python Readin Test",
+            "name": "Python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
