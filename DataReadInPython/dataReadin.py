@@ -184,7 +184,8 @@ def getLocationData(httpCon, locationCode, mode, pollutantCodes):
                 for indxi, ite in enumerate(data):
                     data[indxi] = ite.split(",")   
                 
-                locationData.update({pollutantCodes[pollutant] : data})
+                if data != [['']]:
+                    locationData.update({pollutantCodes[pollutant] : data})
                     
         except KeyError:
             continue
