@@ -8,6 +8,9 @@ date = 0
 import plotly
 import plotly.graph_objs as go
 import plotly.tools as tls
+import plotly.io as pio
+
+import os
 
 import numpy as np
 
@@ -72,15 +75,11 @@ for i in range(len(z)):
     zin = z[i]
     zCont[yin, xin] = zin
 
-trace0 = go.Scatter(
-    x=xr,  y=yr, mode="markers"
-)
-
-trace1 = go.Contour(
+trace0 = go.Contour(
     x=xrs,  y=yrs, z=zCont, connectgaps=True, line=dict(width = 0),
     autocontour=False, contours=dict( start = 1, end = 10, size = 1),
     colorscale=[
-        [0,"rgb(0,0,255)"],
+        [0,"rgb(255,255,255)"],
         [0.1,"rgb(156,255,156)"],
         [0.2,"rgb(49,255,0)"],
         [0.3,"rgb(49,207,0)"],
@@ -94,15 +93,22 @@ trace1 = go.Contour(
     ]
 )
 
+trace1 = go.Scatter(x=x,y=y,mode="markers",marker=dict(color='rgb(0,0,240)',opacity=0.4,size=5))
 
-
-fig = tls.make_subplots(rows=1, cols=2, subplot_titles=('Scaler',
-                                                        'Data'))
-
-fig.append_trace(trace0, 1, 1)
-fig.append_trace(trace1, 1, 2)
+layout = go.Layout(
+    autosize=False,
+    width=1037,
+    height=996,
+    margin=go.layout.Margin(
+        l=30,
+        r=30,
+        b=30,
+        t=30,
+        pad=4
+    )
+)
  
-
+fig = go.Figure(data=[trace0, trace1],layout=layout)
 
 plotly.offline.plot(fig, show_link=False,auto_open=True)
 
