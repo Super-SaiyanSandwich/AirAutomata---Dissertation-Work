@@ -1,18 +1,22 @@
-username  =  "SuperSaiyanSandwich"
-plotlyAPI = "gOAmpsOinHlGJatVILJl"
-
-filename = "Data/2019Data.txt"
-
-date = 0
 
 import plotly
 import plotly.graph_objs as go
 import plotly.tools as tls
 import plotly.io as pio
 
+from mpl_toolkits.basemap import Basemap
+
 import os
 
 import numpy as np
+
+plotlyUsername  =  "SuperSaiyanSandwich"
+plotlyAPI = "gOAmpsOinHlGJatVILJl"
+
+filename = "Data/2019Data.txt"
+
+date = 0
+
 
 pollutants = {
     'NO2'   : [67,134,200,267,334,400,467,534,600],
@@ -76,8 +80,10 @@ for i in range(len(z)):
     zCont[yin, xin] = zin
 
 trace0 = go.Contour(
-    x=xrs,  y=yrs, z=zCont, connectgaps=True, line=dict(width = 0),
-    autocontour=False, contours=dict( start = 1, end = 10, size = 1),
+    x=x,  y=y, z=z, connectgaps=True,
+    line=dict(width = 0, smoothing=1.0),
+    autocontour=False,
+    contours=dict( start = 1, end = 10, size = 1),
     colorscale=[
         [0,"rgb(255,255,255)"],
         [0.1,"rgb(156,255,156)"],
@@ -95,6 +101,72 @@ trace0 = go.Contour(
 
 trace1 = go.Scatter(x=x,y=y,mode="markers",marker=dict(color='rgb(0,0,240)',opacity=0.4,size=5))
 
+""" trace2 = go.Contour(
+    z=z,
+    x=x,
+    y=y,
+    colorscale="RdBu",
+    zauto=False,  # custom contour levels
+    zmin=0,      # first contour level
+    zmax=10        # last contour level  => colorscale is centered about 0
+) """
+
+m = Basemap(llcrnrlon=-11.1,llcrnrlat=48.7,urcrnrlon=4.0,urcrnrlat=60.2,
+             resolution='i', projection='merc')#, lat_0 = 39.5, lon_0 = -3.25)
+
+#m.fillcontinents(color='none', lake_color='aqua')
+
+# Make trace-generating function (return a Scatter object)
+def make_scatter(x,y):
+    return go.Scatter(
+        x=x,
+        y=y,
+        mode='lines',
+        line=go.scatter.Line(color="black"),
+        name=' ',  # no name on hover
+        fill='toself',
+        fillcolor="white"
+    )
+
+# Functions converting coastline/country polygons to lon/lat traces
+def polygons_to_traces(poly_paths, N_poly):
+    ''' 
+    pos arg 1. (poly_paths): paths to polygons
+    pos arg 2. (N_poly): number of polygon to convert
+    '''
+    traces = []  # init. plotting list 
+
+    for i_poly in range(N_poly):
+        poly_path = poly_paths[i_poly]
+        
+        # get the Basemap coordinates of each segment
+        coords_cc = np.array(
+            [(vertex[0],vertex[1]) 
+             for (vertex,code) in poly_path.iter_segments(simplify=False)]
+        )
+        
+        # convert coordinates to lon/lat by 'inverting' the Basemap projection
+        lon_cc, lat_cc = m(coords_cc[:,0],coords_cc[:,1], inverse=True)
+        
+        # add plot.ly plotting options
+        traces.append(make_scatter(lon_cc,lat_cc))
+     
+    return traces
+
+# Function generating coastline lon/lat traces
+def get_coastline_traces():
+    poly_paths = m.drawcoastlines().get_paths() # coastline polygon paths
+    N_poly = 34 # use only the 91st biggest coastlines (i.e. no rivers)
+    return polygons_to_traces(poly_paths, N_poly)
+
+# Function generating country lon/lat traces
+def get_country_traces():
+    poly_paths = m.drawcountries().get_paths() # country polygon paths
+    N_poly = len(poly_paths)  # use all countries
+    return polygons_to_traces(poly_paths, N_poly)
+
+traces_cc = get_coastline_traces()#+get_country_traces()
+
 layout = go.Layout(
     autosize=False,
     width=1037,
@@ -105,10 +177,26 @@ layout = go.Layout(
         b=30,
         t=30,
         pad=4
-    )
+    ),
+    xaxis=go.layout.XAxis(
+        range = [-10,2]
+    ),
+    yaxis=go.layout.YAxis(
+        range = [50,60.5]
+    ),
+    showlegend=False,
+    hovermode="closest",
+    plot_bgcolor='rgb(0,0,0)'
 )
+
+
+
+data = traces_cc + [trace0, trace1]
+
  
-fig = go.Figure(data=[trace0, trace1],layout=layout)
+#fig = go.Figure(data=[trace0, trace1],layout=layout)
+
+fig = go.Figure(data=data, layout=layout)
 
 plotly.offline.plot(fig, show_link=False,auto_open=True)
 
