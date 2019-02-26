@@ -1,4 +1,4 @@
-#
+0#
 #
 #     IMPORTS
 #
@@ -181,10 +181,17 @@ def getLocationData(httpCon, locationCode, mode, pollutantCodes):
                 data = a.text
                 data = data[20:].split("@@")
                 
-                for indxi, ite in enumerate(data):
-                    data[indxi] = ite.split(",")   
+                if data != ['']:
+                    for indxi, ite in enumerate(data):
+                        t = ite.split(",")                        
+                        try:
+                            if t[4] != "-99":
+                                data[indxi] = list(numpy.array(t)[[0,4]])
+                            else: del data[indxi]        
+                        except:
+                            del data[indxi]
+                            continue
                 
-                if data != [['']]:
                     locationData.update({pollutantCodes[pollutant] : data})
                     
         except KeyError:
@@ -216,7 +223,7 @@ def getHttpCon():
 if __name__ == '__main__':
     print("::TEST::\n")
 
-    for i in range(2019,2020):
+    for i in range(2001,2019):
         data = getData(i)         
         f= open("Data/"+str(i)+"Data.txt","w+")
         f.write(str(data))

@@ -23,7 +23,8 @@ pollutants = {
     'Ozone' : [33,66,100,120,140,160,187,213,240],
     'PM10'  : [16,33,50,58,66,75,83,91,100],
     'PM25'  : [11,23,35,41,47,53,58,64,70],
-    'SO2'   : [88,177,266,354,443,532,710,887,1064]}
+    'SO2'   : [88,177,266,354,443,532,710,887,1064]
+}
 
 data = open(filename,"r")
 datar = data.read()
@@ -123,9 +124,9 @@ def make_scatter(x,y):
         y=y,
         mode='lines',
         line=go.scatter.Line(color="black"),
-        name=' ',  # no name on hover
-        fill='toself',
-        fillcolor="white"
+        name=' '#,  # no name on hover
+        #fill='toself',
+        #fillcolor="white"
     )
 
 # Functions converting coastline/country polygons to lon/lat traces
@@ -185,18 +186,19 @@ layout = go.Layout(
         range = [50,60.5]
     ),
     showlegend=False,
-    hovermode="closest",
-    plot_bgcolor='rgb(0,0,0)'
+    hovermode="closest"#,
+    #plot_bgcolor='rgb(0,0,0)'
 )
 
 
 
-data = traces_cc + [trace0, trace1]
+data = traces_cc + [trace1, trace0]
 
  
 #fig = go.Figure(data=[trace0, trace1],layout=layout)
 
 fig = go.Figure(data=data, layout=layout)
+
 
 plotly.offline.plot(fig, show_link=False,auto_open=True)
 
