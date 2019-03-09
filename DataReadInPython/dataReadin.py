@@ -182,15 +182,21 @@ def getLocationData(httpCon, locationCode, mode, pollutantCodes):
                 data = data[20:].split("@@")
                 
                 if data != ['']:
+                    badData = []
                     for indxi, ite in enumerate(data):
                         t = ite.split(",")                        
                         try:
                             if t[4] != "-99":
                                 data[indxi] = list(numpy.array(t)[[0,4]])
-                            else: del data[indxi]        
+                            else: 
+                                badData.append(indxi)     
                         except:
-                            del data[indxi]
+                            badData.append(indxi)
                             continue
+                    c = 0
+                    for indxi in badData:
+                        del data[indxi - c]
+                        c += 1
                 
                     locationData.update({pollutantCodes[pollutant] : data})
                     
@@ -223,7 +229,7 @@ def getHttpCon():
 if __name__ == '__main__':
     print("::TEST::\n")
 
-    for i in range(2001,2019):
+    for i in range(2001,2020):
         data = getData(i)         
         f= open("Data/"+str(i)+"Data.txt","w+")
         f.write(str(data))

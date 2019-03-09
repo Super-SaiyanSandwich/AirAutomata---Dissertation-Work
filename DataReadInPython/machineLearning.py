@@ -1,23 +1,16 @@
-print("::::IMPORTING LIBRARIES::::")
-print("::Importing Keras::")
-import keras
-from keras.models import Model
-print("::Importing sys::")
-import sys
-sys.path.insert(0, '/DataReadInPython')
-print("::Importing fileReadIn::")
-import fileReadIn as readIn
-
-data = {}
-print("::::READING IN DATA FILES::::")
-for i in range(2009,2020):
-    data.update(readIn.readYearFile(i, DAQI= True))
-
-#model = Sequential()
-
-#from keras.layers import Input, Dense
-
-#model.add(Dense(units = 64, activation='relu', input_dim=))
-
-print("\n::Files Loaded::")
-
+import pandas
+from matplotlib import pyplot
+# load dataset
+dataset = pandas.read_csv('DataSET-PM102001-2002.csv', header=0, index_col=0)
+values = dataset.values
+# specify columns to plot
+groups = [0, 1, 2, 3, 4, 5, 6]
+i = 1
+# plot each column
+pyplot.figure()
+for group in groups:
+	pyplot.subplot(len(groups), 1, i)
+	pyplot.plot(values[:, group])
+	pyplot.title(dataset.columns[group], y=0.5, loc='right')
+	i += 1
+pyplot.show()

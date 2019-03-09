@@ -2,6 +2,7 @@ import os
 import numpy as np
 import progressbar
 import time
+import datetime
 
 def hourly(data):
     return data
@@ -9,6 +10,7 @@ def hourly(data):
 
 def eightHourly(data):
     return data
+
 
 
 averageMethod = {
@@ -29,7 +31,7 @@ pollutants = {
 
 
 def getFilename(year): 
-    return  "Data/" + str(year) + "Data.txt"
+    return  root + str(year) + "Data.txt"
 
 def getDAQI(locationData, dateIndex):
     AQIs = []
@@ -54,6 +56,8 @@ def getDAQIs(locationData, dateRange):
                 try:
                     dataIN = round(float(data[dateIndex][1]))
                     date = data[dateIndex][0]
+                    #date = datetime.datetime.strptime(date[0:11], "%Y-%B-%dT%H")
+
                     for i in range(9):
                         if dataIN < pollutants[pollutant][i]:
                             AQIs.append(i + 1)
@@ -64,7 +68,7 @@ def getDAQIs(locationData, dateRange):
             DAQIs[dateIndex] = {date : max(AQIs)}
     return DAQIs
 
-def readYearFile(year, DAQI = False):
+def readYearFile(year, DAQI = False, dateConv = False):
     print("::Fetching",year,"Data File::")
     filename = getFilename(year)
 
@@ -89,6 +93,12 @@ def readYearFile(year, DAQI = False):
         x = float(tempData.get("Location")[1])
         #x.append(pointx)
 
+        if dateConv:
+            for p in tempData:
+                if p != "Location":
+                    for indxi, ite in enumerate(tempData[p]):
+                        tempData[p][indxi][0] = datetime.datetime.strptime(ite[0], "%Y-%m-%dT%H:%M:%SZ")
+
         if DAQI:
             dLen = max([len(x) for x in list(tempData.values())])
             z[(x,y)] = getDAQIs(tempData, dLen)
@@ -100,7 +110,13 @@ def readYearFile(year, DAQI = False):
         
     return z
 
+root = "./Data/"
 
+try:
+    os.listdir(".").index("Data")
+except:
+    root = "../Data/"
 
 if __name__ == "__main__":
+    root = "Data/"
     a = readYearFile(2002)
