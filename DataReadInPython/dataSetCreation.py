@@ -20,10 +20,19 @@ POLLUTANTS = [
     "NO2"
     ]
 
+OPTIONS = POLLUTANTS + ["ALL"]
+
 def generateDates(yStart, yEnd):
-    return [time.strftime("%Y-%m-%dT%H:%M:%SZ") for time in list(dateutil.rrule.rrule(dateutil.rrule.HOURLY,
-        dtstart= datetime.datetime(yStart,1,1,0,0,0,0),
-        until= datetime.datetime(yEnd,12,31,23,0,0,0)))]
+    if yEnd != datetime.date.today().year:
+        return [time.strftime("%Y-%m-%dT%H:%M:%SZ") for time in list(dateutil.rrule.rrule(dateutil.rrule.HOURLY,
+            dtstart= datetime.datetime(yStart,1,1,0,0,0,0),
+            until= datetime.datetime(yEnd,12,31,23,0,0,0)))]
+    else:
+        today = datetime.date.today() - datetime.timedelta(days = 1)
+        return [time.strftime("%Y-%m-%dT%H:%M:%SZ") for time in list(dateutil.rrule.rrule(dateutil.rrule.HOURLY,
+            dtstart= datetime.datetime(yStart,1,1,0,0,0,0),
+            until= datetime.datetime(yEnd,today.month,today.day,23,0,0,0)))]
+
 
 
 def getData(yStart, yEnd, polu):
@@ -65,7 +74,13 @@ def saveCSV(yearStart, yearEnd, polu):
 
     for locI in progressbar.progressbar(range(len(headers))):
         for data in pdata[locI]:
-            pdates[locI, dates.index(data[0])] = round(float(data[1]))
+            try:
+                pdates[locI, dates.index(data[0])] = round(float(data[1]))
+            except:
+                try:
+                    pdates[locI, dates.index(data[0].lstrip())] = round(float(data[1]))
+                except:
+                    continue
 
     """ alpha = [[date] + list(pdates[:,i]) for i, date in enumerate(dates)]
     pdData = np.array([[""] + headers] +  alpha ) """  #Spent an hour getting this down before realising I can include it all in
@@ -111,7 +126,7 @@ if __name__ == "__main__":
     Label(mainframe, text="Select Ending Year:").grid(row = 2, column = 1)
     popupYEnd.grid(row = 2, column =3)
 
-    popupPolu = OptionMenu(mainframe, tkPolu, *POLLUTANTS)
+    popupPolu = OptionMenu(mainframe, tkPolu, *OPTIONS)
     Label(mainframe, text="Select Polutant:").grid(row = 3, column = 1)
     popupPolu.grid(row = 3, column =3)
     
@@ -127,7 +142,11 @@ if __name__ == "__main__":
     tkYEnd.trace('w', changeYEnd)
 
     def run():
-        saveCSV(tkYStart.get(), tkYEnd.get(), tkPolu.get())
+        if tkPolu.get() == "ALL":
+            for polu in POLLUTANTS:
+                saveCSV(tkYStart.get(), tkYEnd.get(), polu)
+        else:
+            saveCSV(tkYStart.get(), tkYEnd.get(), tkPolu.get())
 
     btn = Button(root, text="RUN", command = run)
     btn.pack()

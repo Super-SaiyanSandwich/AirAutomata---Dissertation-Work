@@ -7,6 +7,8 @@ import xml.etree.ElementTree as EleTree
 
 import numpy 
 
+import progressbar
+
 import certifi
 import urllib3
 
@@ -115,14 +117,14 @@ def getLocations(URL, mode, httpCon, pollutantCodes):
 
     parser = EleTree.XMLParser(encoding="utf-8")
     XMLdata = EleTree.fromstringlist(reqList, parser=parser)
-
-    for location in XMLdata.iter(entry):
+    print("LOADING ALL " + mode.upper() + "MATIC DATA STREAMS")
+    for location in progressbar.progressbar(XMLdata.iter(entry)):
         for polltant in location.iter(link):
             ##print(polltant.attrib["href"])
             if polltant.attrib["href"] in pollutantCodes:
                 locationCode = list(location)[0].text
                 if "Agg" in locationCode: break
-                print("LOADING " + mode.upper() + "MATIC DATA STREAM::" ,locationCode)
+                #print("LOADING " + mode.upper() + "MATIC DATA STREAM::" ,locationCode)
                 locationData = getLocationData(httpCon, locationCode, mode, pollutantCodes)
                 if locationData != {}:
                     data[locationCode] = locationData
@@ -229,7 +231,7 @@ def getHttpCon():
 if __name__ == '__main__':
     print("::TEST::\n")
 
-    for i in range(2001,2020):
+    for i in range(2019,2020):
         data = getData(i)         
         f= open("Data/"+str(i)+"Data.txt","w+")
         f.write(str(data))
