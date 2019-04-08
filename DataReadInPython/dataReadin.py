@@ -41,7 +41,8 @@ aggregated = "aggregated"
 ##
 ##  ATOM feed codes
 ##
-"""  The following are the string codes used to identify elements with the DEFRA ATOM feed. 
+"""  
+    The following are the string codes used to identify elements with the DEFRA ATOM feed. 
 """
 
 spatialDatasetCode = "{http://inspire.ec.europa.eu/schemas/inspire_dls/1.0}spatial_dataset_identifier_code"
@@ -61,18 +62,18 @@ resultValues = "{http://www.opengis.net/swe/2.0}values"
 
 def getData(year):
     """
-    Gets all of the data, for a specific year across all locations that existed in that year.
-    Filters out unneccesary information
+        Gets all of the data, for a specific year across all locations that existed in that year.
+        Filters out unneccesary information
 
-    Parameters
-    ----------
-    year : int
-        The year of data being downloaded
+        Parameters
+        ----------
+        year : int
+            The year of data being downloaded
 
-    Returns
-    -------
-    data
-        dictionary of all the data
+        Returns
+        -------
+        data
+            dictionary of all the data
     """
 
     data = {}
@@ -86,25 +87,25 @@ def getData(year):
 
 def getLocations(URL, mode, httpCon, pollutantCodes):
     """
-    Finds all of the different location codes for sensors reading in information.
-    Once found, all of the data for that location is download and filtered for only
-    the pollutants needed in this project.
+        Finds all of the different location codes for sensors reading in information.
+        Once found, all of the data for that location is download and filtered for only
+        the pollutants needed in this project.
 
-    Parameters
-    ----------
-    URL : string
-        Either the automatic or non-automatic string URL for a year
-    mode : string
-        Either automatic or non-automatic
-    httpCon : urllib3.PoolManager
-        Used to access the URL and download the related file
-    pollutantCodes : dict
-        Urls and related names of saught pollutants
-    
-    Returns
-    -------
-    data
-        dictionary of all the data
+        Parameters
+        ----------
+        URL : string
+            Either the automatic or non-automatic string URL for a year
+        mode : string
+            Either automatic or non-automatic
+        httpCon : urllib3.PoolManager
+            Used to access the URL and download the related file
+        pollutantCodes : dict
+            Urls and related names of saught pollutants
+        
+        Returns
+        -------
+        data
+            dictionary of all the data
     """
 
     data = {}
@@ -138,28 +139,27 @@ def getLocations(URL, mode, httpCon, pollutantCodes):
 
 def getLocationData(httpCon, locationCode, mode, pollutantCodes):
     """
-    Downloads all of the data for a certain location.
+        Downloads all of the data for a certain location.
 
-    By using the standardised Url naming system for the different locations, this function
-    downloads and parses the .XML file related to the year and location being saught.
-    The year is part of the location code in the form of "GB_FixedObservations_[year]_[location]"
+        By using the standardised Url naming system for the different locations, this function
+        downloads and parses the .XML file related to the year and location being saught.
+        The year is part of the location code in the form of "GB_FixedObservations_[year]_[location]"
 
-    Parameters
-    ----------
-    httpCon : urllib3.PoolManager
-        Used to access the URL and download the related file
-    locationCode : str
-        Location and year saught for data file
-    mode : str
-        Defines whether it is automatic or non-automatic data stream from DEFRA
-    pollutantCodes : dict
-        Urls and related names of saught pollutants
-        
-    Returns
-    -------
-    dict
-        Dictionary of values for each pollutant
-
+        Parameters
+        ----------
+        httpCon : urllib3.PoolManager
+            Used to access the URL and download the related file
+        locationCode : str
+            Location and year saught for data file
+        mode : str
+            Defines whether it is automatic or non-automatic data stream from DEFRA
+        pollutantCodes : dict
+            Urls and related names of saught pollutants
+            
+        Returns
+        -------
+        dict
+            Dictionary of values for each pollutant
     """
     
     locationData = {}

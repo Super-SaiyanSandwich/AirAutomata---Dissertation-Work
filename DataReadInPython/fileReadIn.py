@@ -102,6 +102,7 @@ def readYearFile(year, DAQI = False, dateConv = False):
         if DAQI:
             dLen = max([len(x) for x in list(tempData.values())])
             z[(x,y)] = getDAQIs(tempData, dLen)
+            
         else:
             z[(x,y)] = tempData
             del z[(x,y)]["Location"]

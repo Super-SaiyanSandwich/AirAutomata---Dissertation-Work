@@ -15,9 +15,10 @@ datasetOzone = datasetPM10.loc[:,datasetPM25.keys()]
 datasetNO2 = datasetPM10.loc[:,datasetPM25.keys()]
 datasetSO2 = datasetPM10.loc[:,datasetPM25.keys()] """
 
-
 sets = [datasetNO2, datasetOzone, datasetPM10, datasetPM25, datasetSO2]
 
+
+##DATASET REDUCTION##
 keys = set.intersection(*[set(l) for l in sets])
 
 sets = [a.loc[:,keys] for a in sets]
