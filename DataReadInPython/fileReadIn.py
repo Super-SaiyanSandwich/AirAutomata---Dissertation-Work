@@ -4,6 +4,11 @@ import progressbar
 import time
 import datetime
 
+"""
+A set of functions that was included at the beginning of development, however is not need
+after a little research as the purpose that the functions would fulfill has already been
+implemented by DEFRA in the ATOM service.
+
 def hourly(data):
     return data
 
@@ -12,15 +17,15 @@ def eightHourly(data):
     return data
 
 
-
 averageMethod = {
     'NO2'   : "Hourly",
     'Ozone' : "8 Hourly",
     'PM10'  : "24 Hour",
     'PM25'  : "24 Hour",
     'SO2'   : "Hourly"
-}
+} """
 
+##  A dictionary of the DAQI bands for each pollutant
 pollutants = {
     'NO2'   : [67,134,200,267,334,400,467,534,600],
     'Ozone' : [33,66,100,120,140,160,187,213,240],
@@ -31,9 +36,39 @@ pollutants = {
 
 
 def getFilename(year): 
+    """
+        Function used to construct a file path when selecting the source of data
+
+        Parameters
+        ----------
+        year: int
+            The year currently selected for the data source
+            
+        Returns
+        -------
+        str
+            File path for the year data text document
+    """
     return  root + str(year) + "Data.txt"
 
 def getDAQI(locationData, dateIndex):
+    """
+        Gets the DAQI value
+
+        Parameters
+        ----------
+        httpCon : urllib3.PoolManager
+            Used to access the URL and download the related file
+        locationCode : str
+            Location and year saught for data file
+        mode : str
+            Defines whether it is automatic or non-automatic data stream from DEFRA
+        pollutantCodes : dict
+            Urls and related names of saught pollutants
+            
+        Returns
+        -------
+    """
     AQIs = []
     for pollutant in pollutants:
         data = locationData.get(pollutant)        
@@ -113,6 +148,7 @@ def readYearFile(year, DAQI = False, dateConv = False):
 
 root = "./Data/"
 
+## Finds the correct root to retrieve the data from
 try:
     os.listdir(".").index("Data")
 except:

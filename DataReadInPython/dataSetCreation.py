@@ -49,12 +49,12 @@ def getData(yStart, yEnd, polu):
 
     for i in range(yStart + 1,yEnd + 1):
         yData = readIn.readYearFile(i)
-    for location in yData:
-        gc.collect()
-        try:
-            data[location] += yData[location][polu]
-        except:
-            continue
+        for location in yData:
+            gc.collect()
+            try:
+                data[location] += yData[location][polu]
+            except:
+                continue
 
     return data
 
@@ -86,7 +86,14 @@ def saveCSV(yearStart, yearEnd, polu):
     pdData = np.array([[""] + headers] +  alpha ) """  #Spent an hour getting this down before realising I can include it all in
                                                        #dataframe decleration :(
 
-    dataFrame = pd.DataFrame(pdates.T, index = dates, columns = headers)
+    
+    bIndexs = [i for i,a in enumerate(pdates) if len(set(a)) == 1]
+    pdates = np.delete(pdates, bIndexs, 0).T
+    headers = [a for i,a in enumerate(headers) if i not in bIndexs]
+
+    dataFrame = pd.DataFrame(pdates, index = dates, columns = headers)
+
+
 
     print("::WRITING FILES::")
     dataFrame.to_csv("DataSET-"+polu+str(yearStart)+"-"+str(yearEnd)+".csv")
