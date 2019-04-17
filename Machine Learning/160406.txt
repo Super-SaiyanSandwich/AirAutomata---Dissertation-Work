@@ -1,0 +1,1 @@
+11ms/step - loss: 0.0041 - acc: 0.5254 - val_loss: 0.0053 - val_acc: 0.4217
