@@ -58,10 +58,13 @@ def removeOutliers(data): ##Removes any extreme Outliers in the data, as some of
 	flag = 2 * (q75 + 3 * (q75 - q0))
 	return array([(lambda x: x if x < flag else 0)(x) for x in data])
 
-sets = [datasetPM25]
+sets = [datasetNO2, datasetOzone, datasetPM10, datasetPM25, datasetSO2]
+
 
 
 ##DATASET REDUCTION##
+sets = [sets[2]]
+
 keys = set.intersection(*[set(l) for l in sets])
 
 sets = [a.loc[:,keys] for a in sets]
@@ -122,12 +125,12 @@ e = d.reshape(locs,data.shape[0]).T
 
 i = 1
 # plot each column
-pyplot.figure()
+""" pyplot.figure()
 for group in groups:
 	pyplot.subplot(len(groups), 1, i)
 	pyplot.plot(e[:, group])
 	i += 1
-pyplot.show()
+pyplot.show() """
 
 data = array(e.reshape(round(e.shape[0]/timesteps), timesteps, features))
 
@@ -184,11 +187,27 @@ history = model.fit(
 )
 
 pyplot.figure()
-pyplot.subplot(2,1,1)
-pyplot.plot(history.history['val_acc'], label='Pm2.5')
-pyplot.legend()
+pyplot.suptitle("PM10", fontsize=14)
+pyplot.subplots_adjust(hspace=0.1, wspace=0.2)
 
-pyplot.subplot(2,1,2)
+pyplot.subplot(2,2,1)
+pyplot.plot(history.history['val_acc'], label='Pm2.5')
+pyplot.title("Accuracy")
+pyplot.ylabel("Test")
+#pyplot.legend()
+
+pyplot.subplot(2,2,3)
 pyplot.plot(history.history['acc'], label='Pm2.5')
-pyplot.legend()
+#pyplot.legend()
+pyplot.ylabel("Train")
+
+pyplot.subplot(2,2,2)
+pyplot.plot(history.history['val_loss'], label='Pm2.5')
+pyplot.title("Loss Function")
+#pyplot.legend()
+
+pyplot.subplot(2,2,4)
+pyplot.plot(history.history['loss'], label='Pm2.5')
+#pyplot.legend()
 pyplot.show()
+

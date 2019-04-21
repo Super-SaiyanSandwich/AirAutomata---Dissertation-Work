@@ -8,6 +8,7 @@ from keras.layers import LSTM, Dense, Dropout
 from keras.models import Model
 from keras.engine.input_layer import Input
 from keras.utils import plot_model
+from keras.backend import eval as evalK
 from itertools import chain
 from functools import reduce
 
@@ -47,7 +48,10 @@ def multitask_loss(y_true, y_pred):
 
 def getDAQI(day, pollu):
 	d = [a for a in DAQIBands[pollu] if day < a]
-	return round(1.0 - (0.1 * len(d)),1)
+	""" out = [0] * 10
+	out[9 - len(d)] = 1 
+	return out """
+	return (10 - len(d))
 
 def removeOutliers(data): ##Removes any extreme Outliers in the data, as some of the datasets
 						  ##	are being suppressed by one or two extreme values
@@ -58,13 +62,22 @@ def removeOutliers(data): ##Removes any extreme Outliers in the data, as some of
 	flag = 2 * (q75 + 3 * (q75 - q0))
 	return array([(lambda x: x if x < flag else 0)(x) for x in data])
 
-sets = [datasetNO2, datasetOzone, datasetPM10, datasetPM25, datasetSO2]
+def categoricalShift(yTrue, yPred):
+	predYCat = [[[getDAQI(b, i) for b in a[i*loc: (i+1) * loc]]  for i in range(5)] for a in evalK(yPred)]
+	trueYCat = [[[getDAQI(b, i) for b in a[i*loc: (i+1) * loc]]  for i in range(5)] for a in evalK(yTrue)]
+	match = [True for i, a in enumerate(predYCat) if a == trueYCat[i]]
+	return (len(match) / len(trueYCat)) * 100
 
+sets = [datasetNO2, datasetOzone, datasetPM10, datasetPM25, datasetSO2]
+setN = [0, 1, 2, 3, 4]
+
+pNum = len(sets)
 
 ##DATASET REDUCTION##
 keys = set.intersection(*[set(l) for l in sets])
 
 sets = [a.loc[:,keys] for a in sets]
+
 
 groups = [0, 1, 2, 3, 4 , 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 groups = [a + 15 for a in groups]
@@ -86,7 +99,7 @@ for dataset in sets:
 datasetALL = pandas.concat([a.T for a in sets]).T
 
 features = datasetALL.shape[1]
-locs = features // 5
+locs = features // pNum
 
 data = datasetALL.values
 
@@ -95,11 +108,12 @@ data = data.astype('float32')
 
 dataY = array(data.reshape(round(data.shape[0]/timesteps), timesteps, features))
 
-#bigY = array([array([ [getDAQI(max(a[:,(i*locs) + j]),i) for j in range(locs)] for a in dataY]) for i in range(5)])
-scaler = [[]] * 5
+#bigY = array([array([ [getDAQI(max(a[:,(i*locs) + j]),setN[i]) for j in range(locs)] for a in dataY]) for i in range(pNum)])
 
-d = [[]]*5*locs
-for i in range(5):
+scaler = [[]] * pNum
+
+d = [[]]* pNum *locs
+for i in range(pNum):
 	scaler[i] = MinMaxScaler(feature_range=(0, 1))
 
 	sec = data.T[i * locs:(i + 1) * locs,:]
@@ -114,11 +128,13 @@ for i in range(5):
 
 	sec = [secCon[j * pLoc:(j+1) * pLoc] for j in range(locs)]
 
+	DAQIBands[i] = list(scaler[i].transform(array(DAQIBands[i]).reshape(-1,1)))
+
 	for j in range(locs):
 		d[j + (i * locs)] = list(scaler[i].transform(array(sec[j]).reshape(-1,1)))
 
 d = array(d)
-e = d.reshape(5 * locs,data.shape[0]).T
+e = d.reshape(pNum * locs,data.shape[0]).T
 
 i = 1
 # plot each column
@@ -131,9 +147,15 @@ pyplot.show() """
 
 data = array(e.reshape(round(e.shape[0]/timesteps), timesteps, features))
 
+
+
 bigY = array([array([ [max(a[:,(i*locs) + j]) for j in range(locs)] for a in data]) for i in range(5)])
 
+#bigYCat = array([array([ [getDAQI(max(a[:,(i*locs) + j]), setN[i]) for j in range(locs)] for a in data]) for i in range(5)])
+
+
 bigY = bigY[:,deltaDay:]
+#bigYCat = bigYCat[:,deltaDay:]
 
 data = data[deltaDay:,:,:]
 flag = round(data.shape[0] * trteR)
@@ -141,8 +163,12 @@ flag = round(data.shape[0] * trteR)
 trainX = data[:flag,:,:]
 testX = data[flag:,:,:]
 
+
 trainY = list(bigY[:,:flag])
 testY = list(bigY[:,flag:])
+
+#trainYCat = list(bigYCat[:,:flag])
+#testYCat = list(bigYCat[:,flag:])
 
 sN = data.shape[1] * data.shape[2]
 
@@ -174,7 +200,7 @@ model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
 #plot_model(model, to_file='model.png')
 
-epochs = 100
+epochs = 1
 batchSize = 64
 
 history = model.fit(
@@ -182,14 +208,44 @@ history = model.fit(
 	y = trainY,
 	batch_size = batchSize,
 	epochs = epochs,
-	verbose = 1,
+	verbose = 0,
 	shuffle = False,
 	validation_data=(testX, testY)
 )
 
+predY = model.predict(testX)
+testYCat = [[[getDAQI(b, i) for b in a] for a in testY[i]]  for i in range(5)]
+predYCat = [[[getDAQI(b, i) for b in a] for a in predY[i]]  for i in range(5)]
+match = [[[True for k, b in enumerate(a) if b == testYCat[j][i][k]] for i, a in enumerate(predYCat[j])] for j in range(5)]
+match = sum([sum([len(a) for a in match[i]]) for i in range(5)])
+print( match / array(testYCat).size )
+
+c = 1
+epochsSet = [9, 15, 25, 50]
+
+for epoch in epochsSet:
+	history = model.fit(
+		x = trainX,
+		y = trainY,
+		batch_size = batchSize,
+		epochs = epoch,
+		verbose = 0,
+		shuffle = False,
+		validation_data=(testX, testY)
+	)
+
+	predY = model.predict(testX)
+	testYCat = [[[getDAQI(b, i) for b in a] for a in testY[i]]  for i in range(5)]
+	predYCat = [[[getDAQI(b, i) for b in a] for a in predY[i]]  for i in range(5)]
+	match = [[[True for k, b in enumerate(a) if b == testYCat[j][i][k]] for i, a in enumerate(predYCat[j])] for j in range(5)]
+	match = sum([sum([len(a) for a in match[i]]) for i in range(5)])
+
+	print( epoch + c)
+	print( match / array(testYCat).size )
+	c += epoch
 
 
-pyplot.figure()
+""" pyplot.figure()
 pyplot.subplot(2,2,1)
 pyplot.plot(history.history['val_dense_3_loss'], label='NO2')
 pyplot.plot(history.history['val_dense_6_loss'], label='Ozone')
@@ -208,8 +264,6 @@ pyplot.plot(history.history['dense_12_loss'], label='PM25')
 pyplot.plot(history.history['dense_15_loss'], label='SO2')
 pyplot.ylabel("Train")
 pyplot.legend()
-pyplot.show()
-
 
 
 pyplot.figure()
@@ -230,3 +284,4 @@ pyplot.plot(history.history['dense_12_acc'], label='PM25')
 pyplot.plot(history.history['dense_15_acc'], label='SO2')
 pyplot.legend()
 pyplot.show()
+ """
