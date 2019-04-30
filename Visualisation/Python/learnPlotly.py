@@ -20,8 +20,8 @@ plotlyAPI = "gOAmpsOinHlGJatVILJl"
 
 filename = "Data/2019Data.txt"
 
-date = 10
-
+date = 4
+date = date * 24
 
 pollutants = {
     'NO2'   : [67,134,200,267,334,400,467,534,600],
@@ -73,7 +73,7 @@ def roundTo(x, to):
     return round(x / to) * to
 
 
-def getDAQI(locationData, dateIndex):
+""" def getDAQI(locationData, dateIndex):
     AQIs = []
     for pollutant in pollutants:
         data = locationData.get(pollutant)        
@@ -83,7 +83,10 @@ def getDAQI(locationData, dateIndex):
                 if dataIN < pollutants[pollutant][i]:
                     AQIs.append(i + 1)
                     break
-    return max(AQIs)
+    return max(AQIs) """
+
+def getDAQI(day, polluIndex):
+    return max([getAQI(data, polluIndex) for data in day])
 
 def getAQI(data, polluIndex):
     pset = [a for a in polluVal[polluIndex] if a < data]
@@ -106,7 +109,7 @@ for loc in keys:
     elem = [0] * 5
     for i in range(5):
         try:
-            elem[i] = getAQI(sets[i][loc][date], i)
+            elem[i] = getDAQI(sets[i][loc][date:date+24], i)
         except:
             continue
     
@@ -160,6 +163,7 @@ trace0 = go.Contour(
     x=(xr + smootherX),  y=(yr + smootherY), z=(z + smootherZ), connectgaps=True,
     line=dict(width = 0, smoothing=1.0),
     autocontour=False,
+    hoverinfo='skip',
     contours=dict( start = 1, end = 10, size = 1),
     colorscale=[
         [0.0,"rgb(156,255,156)"],
@@ -180,6 +184,7 @@ trace2 = go.Contour(
     x=(xr + smootherX),  y=(yr + smootherY), z=(z + smootherZ), connectgaps=True,
     line=dict(width = 0, smoothing=1.0),
     autocontour=False,
+    hoverinfo='skip',
     contours=dict( start = 1, end = 10, size = 1),
     colorscale=[
         [0.0,"rgb(255,255,255)"],
@@ -201,10 +206,25 @@ c=[ "rgb(156,255,156)",
 
 cz = [c[i] for i in z]
 
-trace1 = go.Scatter(x=x,y=y,mode="markers",marker=dict(
+def tIn(val):
+    arr = [
+        "Low",
+        "Medium",
+        "High",
+        "Very High"
+    ]
+    return arr[(val - 1)//3]
+
+nz = [tIn(a) for a in z]
+z = [a + 0.25 for a in z]
+
+trace1 = go.Scatter(x=x,y=y,mode="markers",
+    text=nz,
+    hoverinfo='x+y+z+text',
+    marker=dict(
         color=cz,
         opacity=1.0,
-        size=9,
+        size=9,        
         line = dict(
             width = 2,
         )))
@@ -231,7 +251,8 @@ def make_scatter(x,y):
         y=y,
         mode='lines',
         line=go.scatter.Line(color="black"),
-        name=' '#,  # no name on hover
+        name=' ',
+        hoverinfo='skip'#,  # no name on hover
         #fill='toself',
         #fillcolor="white"
     )
@@ -310,7 +331,7 @@ layout = go.Layout(
 
 
 
-data = traces_cc + [trace1, trace0]
+data = [trace0] + traces_cc + [trace1]
 
  
 #fig = go.Figure(data=[trace0, trace1],layout=layout)
@@ -318,6 +339,6 @@ data = traces_cc + [trace1, trace0]
 fig = go.Figure(data=data, layout=layout)
 
 
-plotly.offline.plot(fig, show_link=False,auto_open=True)
+plotly.offline.plot(fig, show_link=False,auto_open=True, config={"displayModeBar": False})
 
 print("Test Complete")

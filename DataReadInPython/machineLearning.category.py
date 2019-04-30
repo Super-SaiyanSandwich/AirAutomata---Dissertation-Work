@@ -21,7 +21,7 @@ from copy import deepcopy
 timesteps = 24
 trteR = 0.9
 
-deltaDay = 1 #Difference in days between day of data inputted and DAQI "forecasted"
+deltaDay = 31 #Difference in days between day of data inputted and DAQI "forecasted"
 
 root = ""
 
@@ -46,12 +46,15 @@ def multitask_loss(y_true, y_pred):
 	# Multi-task loss
 	return K.mean(K.sum(- y_true * K.log(y_pred) - (1 - y_true) * K.log(1 - y_pred), axis=1))
 
-def getDAQI(day, pollu):
+def getAQI(day, pollu):
 	d = [a for a in DAQIBands[pollu] if day < a]
 	""" out = [0] * 10
 	out[9 - len(d)] = 1 
 	return out """
 	return (10 - len(d))
+
+def getDAQI(day):
+	return max([getAQI(day[i],1) for i in range(5)])
 
 def removeOutliers(data): ##Removes any extreme Outliers in the data, as some of the datasets
 						  ##	are being suppressed by one or two extreme values
@@ -180,7 +183,7 @@ sharedNet2 = Dense(sN//2) """
 
 
 i = Input(shape=(timesteps,datasetALL.shape[1]))
-def createModel(dropoutRate=0.5, numNeurons=80, optimizer='adam'):
+def createModel(dropoutRate=0.5, numNeurons=150, optimizer='adam'):
     x = sharedNet1(i)
     x = sharedNet2(x)
     x = Dropout(dropoutRate)(x) #Used to split MTL into unique layers
@@ -200,28 +203,10 @@ model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
 #plot_model(model, to_file='model.png')
 
-epochs = 1
 batchSize = 64
 
-history = model.fit(
-	x = trainX,
-	y = trainY,
-	batch_size = batchSize,
-	epochs = epochs,
-	verbose = 0,
-	shuffle = False,
-	validation_data=(testX, testY)
-)
-
-predY = model.predict(testX)
-testYCat = [[[getDAQI(b, i) for b in a] for a in testY[i]]  for i in range(5)]
-predYCat = [[[getDAQI(b, i) for b in a] for a in predY[i]]  for i in range(5)]
-match = [[[True for k, b in enumerate(a) if b == testYCat[j][i][k]] for i, a in enumerate(predYCat[j])] for j in range(5)]
-match = sum([sum([len(a) for a in match[i]]) for i in range(5)])
-print( match / array(testYCat).size )
-
-c = 1
-epochsSet = [9, 15, 25, 50]
+c = 0
+epochsSet = [10, 15, 25, 50]
 
 for epoch in epochsSet:
 	history = model.fit(
@@ -234,54 +219,15 @@ for epoch in epochsSet:
 		validation_data=(testX, testY)
 	)
 
+	print( epoch + c)
+	c += epoch
 	predY = model.predict(testX)
-	testYCat = [[[getDAQI(b, i) for b in a] for a in testY[i]]  for i in range(5)]
-	predYCat = [[[getDAQI(b, i) for b in a] for a in predY[i]]  for i in range(5)]
+	
+	testYCat = [[[getAQI(b, i) for b in a] for a in testY[i]]  for i in range(5)]
+	predYCat = [[[getAQI(b, i) for b in a] for a in predY[i]]  for i in range(5)]
 	match = [[[True for k, b in enumerate(a) if b == testYCat[j][i][k]] for i, a in enumerate(predYCat[j])] for j in range(5)]
 	match = sum([sum([len(a) for a in match[i]]) for i in range(5)])
 
-	print( epoch + c)
 	print( match / array(testYCat).size )
-	c += epoch
 
 
-""" pyplot.figure()
-pyplot.subplot(2,2,1)
-pyplot.plot(history.history['val_dense_3_loss'], label='NO2')
-pyplot.plot(history.history['val_dense_6_loss'], label='Ozone')
-pyplot.plot(history.history['val_dense_9_loss'], label='PM10')
-pyplot.plot(history.history['val_dense_12_loss'], label='PM25')
-pyplot.plot(history.history['val_dense_15_loss'], label='SO2')
-pyplot.title("Loss")
-pyplot.ylabel("Test")
-pyplot.legend()
-
-pyplot.subplot(2,2,3)
-pyplot.plot(history.history['dense_3_loss'], label='NO2')
-pyplot.plot(history.history['dense_6_loss'], label='Ozone')
-pyplot.plot(history.history['dense_9_loss'], label='PM10')
-pyplot.plot(history.history['dense_12_loss'], label='PM25')
-pyplot.plot(history.history['dense_15_loss'], label='SO2')
-pyplot.ylabel("Train")
-pyplot.legend()
-
-
-pyplot.figure()
-pyplot.subplot(2,2,2)
-pyplot.plot(history.history['val_dense_3_acc'], label='NO2')
-pyplot.plot(history.history['val_dense_6_acc'], label='Ozone')
-pyplot.plot(history.history['val_dense_9_acc'], label='PM10')
-pyplot.plot(history.history['val_dense_12_acc'], label='PM25')
-pyplot.plot(history.history['val_dense_15_acc'], label='SO2')
-pyplot.ylabel("Accuracy")
-pyplot.legend()
-
-pyplot.subplot(2,2,4)
-pyplot.plot(history.history['dense_3_acc'], label='NO2')
-pyplot.plot(history.history['dense_6_acc'], label='Ozone')
-pyplot.plot(history.history['dense_9_acc'], label='PM10')
-pyplot.plot(history.history['dense_12_acc'], label='PM25')
-pyplot.plot(history.history['dense_15_acc'], label='SO2')
-pyplot.legend()
-pyplot.show()
- """

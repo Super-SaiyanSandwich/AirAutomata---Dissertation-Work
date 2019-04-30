@@ -20,7 +20,7 @@ from copy import deepcopy
 timesteps = 24
 trteR = 0.9
 
-deltaDay = 1 #Difference in days between day of data inputted and DAQI "forecasted"
+deltaDay = 3 #Difference in days between day of data inputted and DAQI "forecasted"
 
 root = ""
 

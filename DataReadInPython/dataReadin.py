@@ -34,9 +34,10 @@ pollutantCodes = {
 ## WITHIN THE DATASETS, IF A DATA SAMPLE HAS THIS CODE FOR ONE OF IT'S ATTRIBUTES THEN IT IS USELESS
 missingFOI = "http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_missingFOI"
 
+## DIFFERENT TYPES OF DATA
 auto = "auto"
 nonAuto = "non-auto"
-aggregated = "aggregated"
+aggregated = "aggregated" ## NOT USED
 
 ##
 ##  ATOM feed codes
@@ -231,7 +232,7 @@ def getHttpCon():
 if __name__ == '__main__':
     print("::TEST::\n")
 
-    for i in range(2017,2020):
+    for i in range(2019,2020):
         data = getData(i)         
         f= open("Data/"+str(i)+"Data.txt","w+")
         f.write(str(data))
