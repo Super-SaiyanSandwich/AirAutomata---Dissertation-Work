@@ -176,7 +176,7 @@ def getHttpCon():
 if __name__ == '__main__':
     print("::TEST::\n")
 
-    for i in range(1973,2019):
+    for i in range(2010,2019):
         data = getData(i)         
         f= open("Data/"+str(i)+"Data.txt","w+")
         f.write(str(data))
