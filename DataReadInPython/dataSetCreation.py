@@ -9,7 +9,7 @@ import gc
 
 import progressbar
 
-from tkinter import *
+from tkinter import Tk, Frame, IntVar, StringVar, OptionMenu, Label, OptionMenu, Button, N, E, W, S
 
 
 POLLUTANTS = [
