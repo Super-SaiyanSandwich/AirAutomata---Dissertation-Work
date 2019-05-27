@@ -1,0 +1,2 @@
+ - 14s - loss: 19.3204 - dense_3_loss: 6.1964 - dense_6_loss: 2.5671 - dense_9_loss: 3.1299 - dense_12_loss: 4.7548 - dense_15_loss: 2.6721 - dense_3_acc: 0.9398 - dense_6_acc: 0.2086 - dense_9_acc: 0.2821 - dense_12_acc:
+0.4238 - dense_15_acc: 0.4866 - val_loss: 22.1939 - val_dense_3_loss: 6.4026 - val_dense_6_loss: 2.6714 - val_dense_9_loss: 4.0138 - val_dense_12_loss: 5.5504 - val_dense_15_loss: 3.5557 - val_dense_3_acc: 0.8434 - val_dense_6_acc: 0.2651 - val_dense_9_acc: 0.2892 - val_dense_12_acc: 0.2651 - val_dense_15_acc: 0.2771
